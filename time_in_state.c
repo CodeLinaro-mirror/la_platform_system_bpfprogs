@@ -14,7 +14,12 @@
  *
  */
 
+#ifdef MOCK_BPF
+#include <test/mock_bpf_helpers.h>
+#else
 #include <bpf_helpers.h>
+#endif
+
 #include <bpf_timeinstate.h>
 
 DEFINE_BPF_MAP_GRW(total_time_in_state_map, PERCPU_ARRAY, uint32_t, uint64_t, MAX_FREQS_FOR_TOTAL,
@@ -22,7 +27,8 @@ DEFINE_BPF_MAP_GRW(total_time_in_state_map, PERCPU_ARRAY, uint32_t, uint64_t, MA
 
 DEFINE_BPF_MAP_GRW(uid_time_in_state_map, PERCPU_HASH, time_key_t, tis_val_t, 1024, AID_SYSTEM)
 
-DEFINE_BPF_MAP_GRW(uid_concurrent_times_map, PERCPU_HASH, time_key_t, concurrent_val_t, 1024, AID_SYSTEM)
+DEFINE_BPF_MAP_GRW(uid_concurrent_times_map, PERCPU_HASH, time_key_t, concurrent_val_t, 1024,
+                   AID_SYSTEM)
 DEFINE_BPF_MAP_GRW(uid_last_update_map, HASH, uint32_t, uint64_t, 1024, AID_SYSTEM)
 
 DEFINE_BPF_MAP_GWO(cpu_last_update_map, PERCPU_ARRAY, uint32_t, uint64_t, 1, AID_SYSTEM)
