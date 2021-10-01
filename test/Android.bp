@@ -26,3 +26,13 @@ bpf {
         "-Werror",
     ],
 }
+
+cc_library {
+    name: "lib_mock_bpf",
+    srcs: ["mock_bpf.cpp"],
+    header_libs: ["bpf_prog_headers"],
+    cflags: [
+        "-Wall",
+        "-Werror",
+    ],
+}
