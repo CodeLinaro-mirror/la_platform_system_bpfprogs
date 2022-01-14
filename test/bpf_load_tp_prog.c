@@ -33,8 +33,8 @@ struct switch_args {
     int next_prio;
 };
 
-SEC("tracepoint/sched/sched_switch")
-int tp_sched_switch(struct switch_args* args) {
+DEFINE_BPF_PROG("tracepoint/sched/sched_switch", AID_ROOT, AID_ROOT, tp_sched_switch)
+(struct switch_args* args) {
     int key;
     uint32_t val;
 
