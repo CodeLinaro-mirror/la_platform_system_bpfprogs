@@ -206,17 +206,18 @@ struct cpufreq_args {
 
 DEFINE_BPF_PROG("tracepoint/power/cpu_frequency", AID_ROOT, AID_SYSTEM, tp_cpufreq)
 (struct cpufreq_args* args) {
+    const int ALLOW = 1;  // return 1 to avoid blocking simpleperf from receiving events.
     uint32_t cpu = args->cpu_id;
     unsigned int new = args->state;
     uint32_t* policyp = bpf_cpu_policy_map_lookup_elem(&cpu);
-    if (!policyp) return 0;
+    if (!policyp) return ALLOW;
     uint32_t policy = *policyp;
     freq_idx_key_t key = {.policy = policy, .freq = new};
     uint8_t* idxp = bpf_freq_to_idx_map_lookup_elem(&key);
-    if (!idxp) return 0;
+    if (!idxp) return ALLOW;
     uint8_t idx = *idxp;
     bpf_policy_freq_idx_map_update_elem(&policy, &idx, BPF_ANY);
-    return 0;
+    return ALLOW;
 }
 
 // The format of the sched/sched_process_free event is described in
