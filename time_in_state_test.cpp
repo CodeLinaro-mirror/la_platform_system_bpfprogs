@@ -32,6 +32,7 @@ int bpf_policy_freq_idx_map_update_elem(uint32_t* policy, uint8_t* index, uint64
 int bpf_freq_to_idx_map_update_elem(freq_idx_key_t* freq_idx_key, uint8_t* index, uint64_t flags);
 tis_val_t* bpf_uid_time_in_state_map_lookup_elem(time_key_t* key);
 concurrent_val_t* bpf_uid_concurrent_times_map_lookup_elem(time_key_t* key);
+int bpf_cpu_last_pid_map_update_elem(uint32_t* zero, pid_t* pid, uint64_t flags);
 
 struct switch_args {
     unsigned long long ignore;
@@ -58,8 +59,7 @@ int tp_cpufreq(struct cpufreq_args* args);
 
 static void enableTracking() {
     uint32_t zero = 0;
-    uint32_t one = 1;
-    bpf_nr_active_map_update_elem(&zero, &one, BPF_ANY);
+    bpf_nr_active_map_update_elem(&zero, &zero, BPF_ANY);
 }
 
 // Defines a CPU cluster <policy> containing CPUs <cpu_ids> with available frequencies
@@ -75,6 +75,9 @@ static void initCpuPolicy(uint32_t policy, std::vector<uint32_t> cpuIds,
         uint32_t zero = 0;
         uint64_t time = 0;
         bpf_cpu_last_update_map_update_elem(&zero, &time, BPF_ANY);
+
+        pid_t pid = 0;
+        bpf_cpu_last_pid_map_update_elem(&zero, &pid, BPF_ANY);
     }
     for (uint8_t i = 0; i < frequencies.size(); i++) {
         uint8_t index = i + 1;  // Frequency indexes start with 1
@@ -83,7 +86,7 @@ static void initCpuPolicy(uint32_t policy, std::vector<uint32_t> cpuIds,
     }
     if (active) {
         uint32_t zero = 0;
-        bpf_policy_nr_active_map_update_elem(&policy, &zero, BPF_NOEXIST);
+        bpf_policy_nr_active_map_update_elem(&policy, &zero, BPF_ANY);
     }
 }
 
@@ -189,7 +192,7 @@ TEST(time_in_state, tp_sched_switch) {
 
     // 1314 - 1000 = 314
     assertTimeInState(42, 0, {314, 0});
-    assertConcurrentTimes(42, 0, {314, 0, 0, 0, 0}, {0, 314, 0, 0, 0});
+    assertConcurrentTimes(42, 0, {314, 0, 0, 0, 0}, {314, 0, 0, 0, 0});
 
     mock_bpf_set_current_uid_gid(51);
     mock_bpf_set_smp_processor_id(3);
@@ -210,8 +213,31 @@ TEST(time_in_state, tp_sched_switch) {
     assertTimeInState(51, 0, {0, 5859 - 2718, 2718 - 1314});
 
     // (2718-1314)+(5859-2718) = 4545
-    assertConcurrentTimes(51, 0, {4545, 0, 0, 0, 0}, {0, 0, 4545, 0, 0});
+    assertConcurrentTimes(51, 0, {4545, 0, 0, 0, 0}, {0, 4545, 0, 0, 0});
 
     assertUidLastUpdateTime(42, 1314);
     assertUidLastUpdateTime(51, 5859);
+}
+
+TEST(time_in_state, tp_sched_switch_active_cpus) {
+    mock_bpf_set_ktime_ns(1000);
+    mock_bpf_set_current_uid_gid(42);
+
+    initCpuPolicy(0, {0}, {1000, 2000}, true);
+
+    enableTracking();
+
+    mock_bpf_set_smp_processor_id(0);
+
+    noteSchedSwitch(0, 1);
+
+    mock_bpf_set_ktime_ns(1100);
+
+    noteSchedSwitch(0, 1);
+
+    mock_bpf_set_ktime_ns(1200);
+
+    noteSchedSwitch(1, 2);
+
+    assertConcurrentTimes(42, 0, {100}, {100});
 }
