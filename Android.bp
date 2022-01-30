@@ -33,6 +33,9 @@ bpf {
         "-Wall",
         "-Werror",
     ],
+    include_dirs: [
+        "system/bpf/progs/include",
+    ],
 }
 
 cc_library {
