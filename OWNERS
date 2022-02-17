@@ -1,1 +1,2 @@
-include platform/system/bpf:/OWNERS
+set noparent
+file:platform/system/bpf:master:/OWNERS_bpf

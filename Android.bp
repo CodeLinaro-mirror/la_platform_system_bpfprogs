@@ -33,6 +33,9 @@ bpf {
         "-Wall",
         "-Werror",
     ],
+    include_dirs: [
+        "system/bpf/progs/include",
+    ],
 }
 
 cc_library {
@@ -71,4 +74,16 @@ cc_test {
     static_executable: true,
     stl: "libc++_static",
     licenses: ["Android-Apache-2.0"],
+}
+
+bpf {
+    name: "fuse_media.o",
+    srcs: ["fuse_media.c"],
+    cflags: [
+        "-Wall",
+        "-Werror",
+    ],
+    include_dirs: [
+        "external/libfuse/include",
+    ],
 }
