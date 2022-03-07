@@ -29,6 +29,7 @@ license {
 bpf {
     name: "time_in_state.o",
     srcs: ["time_in_state.c"],
+    btf: true,
     cflags: [
         "-Wall",
         "-Werror",

@@ -27,6 +27,16 @@ bpf {
     ],
 }
 
+bpf {
+    name: "bpf_load_tp_prog_btf.o",
+    srcs: ["bpf_load_tp_prog_btf.c"],
+    btf: true,
+    cflags: [
+        "-Wall",
+        "-Werror",
+    ],
+}
+
 cc_library {
     name: "lib_mock_bpf",
     srcs: ["mock_bpf.cpp"],

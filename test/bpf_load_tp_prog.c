@@ -45,4 +45,19 @@ DEFINE_BPF_PROG("tracepoint/sched/sched_switch", AID_ROOT, AID_ROOT, tp_sched_sw
     return 0;
 }
 
+
+struct wakeup_args {
+    unsigned long long ignore;
+    char comm[16];
+    int pid;
+    int prio;
+    int success;
+    int target_cpu;
+};
+
+DEFINE_BPF_PROG_KVER("tracepoint/sched/sched_wakeup", AID_ROOT, AID_ROOT, tp_sched_wakeup, KVER_INF)
+(struct wakeup_args* args) {
+    return 0;
+}
+
 LICENSE("GPL");
