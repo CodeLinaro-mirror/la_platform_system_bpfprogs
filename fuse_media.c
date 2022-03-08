@@ -181,6 +181,11 @@ DEFINE_BPF_PROG("fuse/media", AID_ROOT, AID_MEDIA_RW, fuse_media)
             return FUSE_BPF_BACKING;
         }
 
+        case FUSE_CANONICAL_PATH | FUSE_PREFILTER: {
+            bpf_printk("CanonicalPath %d", fa->nodeid);
+            return FUSE_BPF_BACKING;
+        }
+
         default:
             if (fa->opcode & FUSE_PREFILTER)
                 bpf_printk("prefilter *** UNKNOWN *** opcode: %d", fa->opcode & FUSE_OPCODE_FILTER);
