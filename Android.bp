@@ -55,6 +55,7 @@ cc_library {
 
 cc_test {
     name: "bpf-time-in-state-tests",
+    test_suites: ["general-tests"],
     gtest: true,
     host_supported: false,
     srcs: [

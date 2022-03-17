@@ -93,7 +93,7 @@ static void initCpuPolicy(uint32_t policy, std::vector<uint32_t> cpuIds,
 static void noteCpuFrequencyChange(uint32_t cpuId, uint32_t frequency) {
     cpufreq_args args{.cpu_id = cpuId, .state = frequency};
     int ret = tp_cpufreq(&args);  // Tracepoint event power/cpu_frequency
-    ASSERT_EQ(0, ret);
+    ASSERT_EQ(1, ret);
 }
 
 static void noteSchedSwitch(pid_t prevPid, pid_t nextPid) {
@@ -240,4 +240,27 @@ TEST(time_in_state, tp_sched_switch_active_cpus) {
     noteSchedSwitch(1, 2);
 
     assertConcurrentTimes(42, 0, {100}, {100});
+}
+
+TEST(time_in_state, tp_sched_switch_sdk_sandbox) {
+    mock_bpf_set_ktime_ns(1000);
+    mock_bpf_set_current_uid_gid(AID_SDK_SANDBOX_PROCESS_START);
+
+    initCpuPolicy(0, {0}, {1000, 2000}, true);
+
+    enableTracking();
+
+    mock_bpf_set_smp_processor_id(0);
+
+    noteSchedSwitch(0, 1);
+
+    mock_bpf_set_ktime_ns(1100);
+
+    noteSchedSwitch(1, 2);
+
+    assertTimeInState(AID_APP_START, 0, {100, 0});
+    assertTimeInState(AID_SDK_SANDBOX, 0, {100, 0});
+
+    assertConcurrentTimes(AID_APP_START, 0, {100}, {100});
+    assertConcurrentTimes(AID_SDK_SANDBOX, 0, {100}, {100});
 }

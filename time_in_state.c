@@ -59,6 +59,46 @@ struct switch_args {
     int next_prio;
 };
 
+static inline __always_inline void update_uid(uint32_t uid, uint64_t delta, uint64_t time,
+                                              uint8_t freq_idx, uint32_t active,
+                                              uint32_t policy_active) {
+    time_key_t key = {.uid = uid, .bucket = freq_idx / FREQS_PER_ENTRY};
+    tis_val_t* val = bpf_uid_time_in_state_map_lookup_elem(&key);
+    if (!val) {
+        tis_val_t zero_val = {.ar = {0}};
+        bpf_uid_time_in_state_map_update_elem(&key, &zero_val, BPF_NOEXIST);
+        val = bpf_uid_time_in_state_map_lookup_elem(&key);
+    }
+    if (val) val->ar[freq_idx % FREQS_PER_ENTRY] += delta;
+
+    key.bucket = active / CPUS_PER_ENTRY;
+    concurrent_val_t* ct = bpf_uid_concurrent_times_map_lookup_elem(&key);
+    if (!ct) {
+        concurrent_val_t zero_val = {.active = {0}, .policy = {0}};
+        bpf_uid_concurrent_times_map_update_elem(&key, &zero_val, BPF_NOEXIST);
+        ct = bpf_uid_concurrent_times_map_lookup_elem(&key);
+    }
+    if (ct) ct->active[active % CPUS_PER_ENTRY] += delta;
+
+    if (policy_active / CPUS_PER_ENTRY != key.bucket) {
+        key.bucket = policy_active / CPUS_PER_ENTRY;
+        ct = bpf_uid_concurrent_times_map_lookup_elem(&key);
+        if (!ct) {
+            concurrent_val_t zero_val = {.active = {0}, .policy = {0}};
+            bpf_uid_concurrent_times_map_update_elem(&key, &zero_val, BPF_NOEXIST);
+            ct = bpf_uid_concurrent_times_map_lookup_elem(&key);
+        }
+    }
+    if (ct) ct->policy[policy_active % CPUS_PER_ENTRY] += delta;
+    uint64_t* uid_last_update = bpf_uid_last_update_map_lookup_elem(&uid);
+    if (uid_last_update) {
+        *uid_last_update = time;
+    } else {
+        bpf_uid_last_update_map_update_elem(&uid, &time, BPF_NOEXIST);
+    }
+    return;
+}
+
 DEFINE_BPF_PROG("tracepoint/sched/sched_switch", AID_ROOT, AID_SYSTEM, tp_sched_switch)
 (struct switch_args* args) {
     const int ALLOW = 1;  // return 1 to avoid blocking simpleperf from receiving events.
@@ -116,15 +156,20 @@ DEFINE_BPF_PROG("tracepoint/sched/sched_switch", AID_ROOT, AID_SYSTEM, tp_sched_
     uint8_t freq_idx = *freq_idxp - 1;
 
     uint32_t uid = bpf_get_current_uid_gid();
-    time_key_t key = {.uid = uid, .bucket = freq_idx / FREQS_PER_ENTRY};
-    tis_val_t* val = bpf_uid_time_in_state_map_lookup_elem(&key);
-    if (!val) {
-        tis_val_t zero_val = {.ar = {0}};
-        bpf_uid_time_in_state_map_update_elem(&key, &zero_val, BPF_NOEXIST);
-        val = bpf_uid_time_in_state_map_lookup_elem(&key);
-    }
     uint64_t delta = time - old_last;
-    if (val) val->ar[freq_idx % FREQS_PER_ENTRY] += delta;
+
+    // For UIDs in the SDK sandbox range, we account per-UID times twice, both to the corresponding
+    // app uid and to the "virtual" UID AID_SDK_SANDBOX which is reserved for collecting total times
+    // across all SDK sandbox UIDs. Special handling for this reserved UID in framework code
+    // prevents double counting in systemwide totals.
+    if (((uid % AID_USER_OFFSET) >= AID_SDK_SANDBOX_PROCESS_START) &&
+        ((uid % AID_USER_OFFSET) <= AID_SDK_SANDBOX_PROCESS_END)) {
+        uid -= AID_SDK_SANDBOX_PROCESS_START - AID_APP_START;
+        update_uid(uid, delta, time, freq_idx, nactive, policy_nactive);
+        update_uid(AID_SDK_SANDBOX, delta, time, freq_idx, nactive, policy_nactive);
+    } else {
+        update_uid(uid, delta, time, freq_idx, nactive, policy_nactive);
+    }
 
     // Add delta to total.
     const uint32_t total_freq_idx = freq_idx < MAX_FREQS_FOR_TOTAL ? freq_idx :
@@ -169,31 +214,6 @@ DEFINE_BPF_PROG("tracepoint/sched/sched_switch", AID_ROOT, AID_SYSTEM, tp_sched_
             task_val = bpf_pid_time_in_state_map_lookup_elem(&task_key);
         }
         if (task_val) task_val->ar[freq_idx % FREQS_PER_ENTRY] += delta;
-    }
-    key.bucket = nactive / CPUS_PER_ENTRY;
-    concurrent_val_t* ct = bpf_uid_concurrent_times_map_lookup_elem(&key);
-    if (!ct) {
-        concurrent_val_t zero_val = {.active = {0}, .policy = {0}};
-        bpf_uid_concurrent_times_map_update_elem(&key, &zero_val, BPF_NOEXIST);
-        ct = bpf_uid_concurrent_times_map_lookup_elem(&key);
-    }
-    if (ct) ct->active[nactive % CPUS_PER_ENTRY] += delta;
-
-    if (policy_nactive / CPUS_PER_ENTRY != key.bucket) {
-        key.bucket = policy_nactive / CPUS_PER_ENTRY;
-        ct = bpf_uid_concurrent_times_map_lookup_elem(&key);
-        if (!ct) {
-            concurrent_val_t zero_val = {.active = {0}, .policy = {0}};
-            bpf_uid_concurrent_times_map_update_elem(&key, &zero_val, BPF_NOEXIST);
-            ct = bpf_uid_concurrent_times_map_lookup_elem(&key);
-        }
-    }
-    if (ct) ct->policy[policy_nactive % CPUS_PER_ENTRY] += delta;
-    uint64_t* uid_last_update = bpf_uid_last_update_map_lookup_elem(&uid);
-    if (uid_last_update) {
-        *uid_last_update = time;
-    } else {
-        bpf_uid_last_update_map_update_elem(&uid, &time, BPF_NOEXIST);
     }
     return ALLOW;
 }
