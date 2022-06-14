@@ -57,6 +57,7 @@ cc_test {
     name: "bpf-time-in-state-tests",
     test_suites: ["general-tests"],
     gtest: true,
+    isolated: false,
     host_supported: false,
     srcs: [
         "time_in_state_test.cpp",

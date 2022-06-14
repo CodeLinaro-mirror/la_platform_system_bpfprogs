@@ -28,7 +28,7 @@
     })
 
 DEFINE_BPF_PROG("fuse/media", AID_ROOT, AID_MEDIA_RW, fuse_media)
-(struct fuse_args* fa) {
+(struct fuse_bpf_args* fa) {
     switch (fa->opcode) {
         case FUSE_LOOKUP | FUSE_PREFILTER: {
             const char* name = fa->in_args[0].value;
