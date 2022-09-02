@@ -34,10 +34,7 @@ DEFINE_BPF_PROG("fuse/media", AID_ROOT, AID_MEDIA_RW, fuse_media)
             const char* name = fa->in_args[0].value;
 
             bpf_printk("LOOKUP: %lx %s", fa->nodeid, name);
-            if (fa->nodeid == 1)
-                return FUSE_BPF_USER_FILTER | FUSE_BPF_BACKING;
-            else
-                return FUSE_BPF_BACKING;
+            return FUSE_BPF_BACKING;
         }
 
             /* FUSE_FORGET */
