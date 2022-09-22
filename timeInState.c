@@ -1,5 +1,5 @@
 /*
- * time_in_state eBPF program
+ * timeInState eBPF program
  *
  * Copyright (C) 2018 Google
  *
