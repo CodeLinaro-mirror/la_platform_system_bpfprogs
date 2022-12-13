@@ -34,16 +34,34 @@ DEFINE_BPF_PROG("fuse/media", AID_ROOT, AID_MEDIA_RW, fuse_media)
             const char* name = fa->in_args[0].value;
 
             bpf_printk("LOOKUP_PREFILTER: %lx %s", fa->nodeid, name);
-            // Using backing implementation but remove bpf_action for children files/directories
-            // in the postfilter.
             return FUSE_BPF_BACKING | FUSE_BPF_POST_FILTER;
         }
 
         case FUSE_LOOKUP | FUSE_POSTFILTER: {
+            struct fuse_entry_out* feo = fa->out_args[0].value;
             struct fuse_entry_bpf_out* febo = fa->out_args[1].value;
+            uint64_t uid_gid = bpf_get_current_uid_gid();
+            uint32_t uid = uid_gid;
+            uint32_t gid = uid_gid >> 32;
 
             febo->bpf_action = FUSE_ACTION_REMOVE;
-            return FUSE_BPF_BACKING;
+
+            /* If the decision is easy, make it here for performance */
+            if (fa->error_in || (feo->attr.mode & 0001) ||
+                ((feo->attr.mode & 0010) && gid == feo->attr.gid) ||
+                ((feo->attr.mode & 0100) && uid == feo->attr.uid))
+                return 0;
+
+            /* Delegate to the daemon */
+            return FUSE_BPF_USER_FILTER;
+        }
+
+        case FUSE_READDIR | FUSE_PREFILTER: {
+            return FUSE_BPF_BACKING | FUSE_BPF_POST_FILTER;
+        }
+
+        case FUSE_READDIR | FUSE_POSTFILTER: {
+            return FUSE_BPF_USER_FILTER;
         }
 
         default:
