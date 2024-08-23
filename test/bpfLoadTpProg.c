@@ -56,7 +56,7 @@ struct wakeup_args {
 };
 
 DEFINE_BPF_PROG_KVER("tracepoint/sched/sched_wakeup", AID_ROOT, AID_ROOT, tp_sched_wakeup, KVER_INF)
-(struct wakeup_args* args) {
+(struct wakeup_args* __unused args) {
     return 0;
 }
 
