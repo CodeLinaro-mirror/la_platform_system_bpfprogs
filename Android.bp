@@ -30,11 +30,6 @@ license {
 bpf {
     name: "timeInState.o",
     srcs: ["timeInState.c"],
-    btf: true,
-    cflags: [
-        "-Wall",
-        "-Werror",
-    ],
     include_dirs: [
         "system/bpf/progs/include",
     ],
@@ -83,10 +78,7 @@ cc_test {
 bpf {
     name: "fuseMedia.o",
     srcs: ["fuseMedia.c"],
-    cflags: [
-        "-Wall",
-        "-Werror",
-    ],
+    btf: false,
     include_dirs: [
         "external/libfuse/include",
     ],
