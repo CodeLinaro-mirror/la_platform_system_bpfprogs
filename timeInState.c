@@ -21,6 +21,7 @@
 #endif
 
 #include <bpf_timeinstate.h>
+#include <errno.h>
 
 DEFINE_BPF_MAP_GRW(total_time_in_state_map, PERCPU_ARRAY, uint32_t, uint64_t, MAX_FREQS_FOR_TOTAL,
                    AID_SYSTEM)
@@ -155,7 +156,16 @@ DEFINE_BPF_PROG("tracepoint/sched/sched_switch", AID_ROOT, AID_SYSTEM, tp_sched_
     // freq_to_idx_map uses 1 as its minimum index so that *freq_idxp == 0 only when uninitialized
     uint8_t freq_idx = *freq_idxp - 1;
 
-    uint32_t uid = bpf_get_current_uid_gid();
+    // The bpf_get_current_uid_gid() helper function returns a u64 value, with the lower 32 bits
+    // containing the UID and the upper 32 bits containing the GID. Additionally, in rare cases,
+    // (usually something is very wrong with the kernel) the helper can return -EINVAL, in which
+    // case we should just return early.
+    unsigned long long uid_gid = bpf_get_current_uid_gid();
+    if (uid_gid == (unsigned long long)(-EINVAL)) return ALLOW;
+
+    // Mask out the uid part of the uid_gid value returned from the kernel.
+    uint32_t uid = uid_gid & 0xFFFFFFFF;
+
     uint64_t delta = time - old_last;
 
     // For UIDs in the SDK sandbox range, we account per-UID times twice, both to the corresponding
