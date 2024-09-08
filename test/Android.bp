@@ -21,12 +21,6 @@ package {
 bpf {
     name: "bpfLoadTpProg.o",
     srcs: ["bpfLoadTpProg.c"],
-    btf: false,
-}
-
-bpf {
-    name: "bpfLoadTpProgBtf.o",
-    srcs: ["bpfLoadTpProgBtf.c"],
 }
 
 cc_library {

@@ -78,7 +78,6 @@ cc_test {
 bpf {
     name: "fuseMedia.o",
     srcs: ["fuseMedia.c"],
-    btf: false,
     include_dirs: [
         "external/libfuse/include",
     ],
