@@ -21,20 +21,6 @@ package {
 bpf {
     name: "bpfLoadTpProg.o",
     srcs: ["bpfLoadTpProg.c"],
-    cflags: [
-        "-Wall",
-        "-Werror",
-    ],
-}
-
-bpf {
-    name: "bpfLoadTpProgBtf.o",
-    srcs: ["bpfLoadTpProgBtf.c"],
-    btf: true,
-    cflags: [
-        "-Wall",
-        "-Werror",
-    ],
 }
 
 cc_library {
