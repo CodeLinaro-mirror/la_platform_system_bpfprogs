@@ -90,3 +90,24 @@ libbpf_prog {
         },
     },
 }
+
+libbpf_prog {
+    name: "cyclePerUid.bpf",
+    srcs: ["cyclePerUid.c"],
+    header_libs: [
+        "android_bpf_defs",
+        "bpf_prog_headers",
+        "libcutils_headers",
+        "vmlinux_h_5_10",
+    ],
+    cflags: [
+        "-DUSE_VMLINUX",
+    ],
+    relative_install_path: "cpucycleperuid",
+    enabled: false,
+    arch: {
+        x86_64: {
+            enabled: true,
+        },
+    },
+}
