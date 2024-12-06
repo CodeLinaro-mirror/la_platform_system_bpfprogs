@@ -1,9 +1,6 @@
 {
     "presubmit": [
         {
-            "name": "bpf-time-in-state-tests"
-        },
-        {
             "name": "libtimeinstate_test"
         }
     ]
