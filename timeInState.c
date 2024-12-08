@@ -14,12 +14,7 @@
  *
  */
 
-#ifdef MOCK_BPF
-#include <test/mock_bpf_helpers.h>
-#else
 #include <bpf_helpers.h>
-#endif
-
 #include <bpf_timeinstate.h>
 #include <errno.h>
 
