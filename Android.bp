@@ -35,46 +35,6 @@ bpf {
     ],
 }
 
-cc_library {
-    name: "lib_mock_bpf_time_in_state",
-    srcs: ["timeInState.c"],
-    header_libs: ["bpf_prog_headers"],
-    cflags: [
-        "-Wall",
-        "-Werror",
-        "-DMOCK_BPF",
-    ],
-    static_libs: [
-        "lib_mock_bpf",
-    ],
-}
-
-cc_test {
-    name: "bpf-time-in-state-tests",
-    test_suites: ["general-tests"],
-    gtest: true,
-    isolated: false,
-    host_supported: false,
-    srcs: [
-        "time_in_state_test.cpp",
-    ],
-    header_libs: ["bpf_prog_headers"],
-    cflags: [
-        "-Wall",
-        "-Werror",
-    ],
-    whole_static_libs: [
-        "lib_mock_bpf_time_in_state",
-    ],
-    static_libs: [
-        "libgtest_isolated",
-        "lib_mock_bpf",
-    ],
-    static_executable: true,
-    stl: "libc++_static",
-    licenses: ["Android-Apache-2.0"],
-}
-
 bpf {
     name: "fuseMedia.o",
     srcs: ["fuseMedia.c"],
