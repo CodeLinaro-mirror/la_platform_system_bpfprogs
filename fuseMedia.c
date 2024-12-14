@@ -14,18 +14,10 @@
  *
  */
 
-#include <bpf_helpers.h>
-
+#include <android_bpf_defs.h>
 #include <stdint.h>
-
 #define __KERNEL__
 #include <fuse_kernel.h>
-
-#define bpf_printk(fmt, ...)                                       \
-    ({                                                             \
-        char ____fmt[] = fmt;                                      \
-        bpf_trace_printk(____fmt, sizeof(____fmt), ##__VA_ARGS__); \
-    })
 
 DEFINE_BPF_PROG("fuse/media", AID_ROOT, AID_MEDIA_RW, fuse_media)
 (struct fuse_bpf_args* fa) {

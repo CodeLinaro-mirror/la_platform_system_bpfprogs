@@ -32,6 +32,17 @@ bpf {
     srcs: ["timeInState.c"],
     include_dirs: [
         "system/bpf/progs/include",
+        "system/bpf/include/defs",
+    ],
+}
+
+libbpf_prog {
+    name: "timeInState.bpf",
+    srcs: ["timeInState.c"],
+    header_libs: [
+        "bpf_prog_headers",
+        "libcutils_headers",
+        "android_bpf_defs",
     ],
 }
 
@@ -40,5 +51,6 @@ bpf {
     srcs: ["fuseMedia.c"],
     include_dirs: [
         "external/libfuse/include",
+        "system/bpf/include/defs",
     ],
 }
