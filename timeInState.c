@@ -14,9 +14,15 @@
  *
  */
 
-#include <bpf_helpers.h>
+#include <android_bpf_defs.h>
 #include <bpf_timeinstate.h>
 #include <errno.h>
+
+#ifdef ENABLE_LIBBPF
+#include <linux/bpf.h>
+#include <private/android_filesystem_config.h>
+#include <stdbool.h>
+#endif  // ENABLE_LIBBPF
 
 DEFINE_BPF_MAP_GRW(total_time_in_state_map, PERCPU_ARRAY, uint32_t, uint64_t, MAX_FREQS_FOR_TOTAL,
                    AID_SYSTEM)
@@ -95,7 +101,8 @@ static inline __always_inline void update_uid(uint32_t uid, uint64_t delta, uint
     return;
 }
 
-DEFINE_BPF_PROG("tracepoint/sched/sched_switch", AID_ROOT, AID_SYSTEM, tp_sched_switch)
+DEFINE_BPF_PROG("tracepoint/sched/sched_switch", AID_ROOT, AID_SYSTEM,
+                tracepoint_sched_sched_switch)
 (struct switch_args* args) {
     const int ALLOW = 1;  // return 1 to avoid blocking simpleperf from receiving events.
     uint32_t zero = 0;
@@ -229,7 +236,8 @@ struct cpufreq_args {
     unsigned int cpu_id;
 };
 
-DEFINE_BPF_PROG("tracepoint/power/cpu_frequency", AID_ROOT, AID_SYSTEM, tp_cpufreq)
+DEFINE_BPF_PROG("tracepoint/power/cpu_frequency", AID_ROOT, AID_SYSTEM,
+                tracepoint_power_cpu_frequency)
 (struct cpufreq_args* args) {
     const int ALLOW = 1;  // return 1 to avoid blocking simpleperf from receiving events.
     uint32_t cpu = args->cpu_id;
@@ -254,7 +262,8 @@ struct sched_process_free_args {
     int prio;
 };
 
-DEFINE_BPF_PROG("tracepoint/sched/sched_process_free", AID_ROOT, AID_SYSTEM, tp_sched_process_free)
+DEFINE_BPF_PROG("tracepoint/sched/sched_process_free", AID_ROOT, AID_SYSTEM,
+                tracepoint_sched_sched_process_free)
 (struct sched_process_free_args* args) {
     const int ALLOW = 1;
 
