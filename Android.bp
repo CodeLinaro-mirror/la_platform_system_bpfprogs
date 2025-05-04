@@ -27,15 +27,6 @@ license {
     license_text: ["LICENSE"],
 }
 
-bpf {
-    name: "timeInState.o",
-    srcs: ["timeInState.c"],
-    include_dirs: [
-        "system/bpf/progs/include",
-        "system/bpf/include/defs",
-    ],
-}
-
 libbpf_prog {
     name: "timeInState.bpf",
     srcs: ["timeInState.c"],
