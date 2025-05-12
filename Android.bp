@@ -45,3 +45,12 @@ bpf {
         "system/bpf/include/defs",
     ],
 }
+
+libbpf_prog {
+    name: "fuseMedia.bpf",
+    srcs: ["fuseMedia.c"],
+    header_libs: [
+        "android_bpf_defs",
+        "libfuse_headers",
+    ],
+}
