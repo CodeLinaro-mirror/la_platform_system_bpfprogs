@@ -37,15 +37,6 @@ libbpf_prog {
     ],
 }
 
-bpf {
-    name: "fuseMedia.o",
-    srcs: ["fuseMedia.c"],
-    include_dirs: [
-        "external/libfuse/include",
-        "system/bpf/include/defs",
-    ],
-}
-
 libbpf_prog {
     name: "fuseMedia.bpf",
     srcs: ["fuseMedia.c"],
