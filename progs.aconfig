@@ -1,0 +1,9 @@
+package: "android.bpfprogs.flags"
+container: "system"
+
+flag {
+    name: "kernel_wakelock_duration"
+    namespace: "pixel_data_engineering"
+    description: "Enable Kernel Wakelock duration metric"
+    bug: "373519546"
+}

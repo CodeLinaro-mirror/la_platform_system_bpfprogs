@@ -46,3 +46,28 @@ libbpf_prog {
         "libfuse_headers",
     ],
 }
+
+aconfig_declarations {
+    name: "android_bpfprogs_flags",
+    package: "android.bpfprogs.flags",
+    container: "system",
+    srcs: [
+        "progs.aconfig",
+    ],
+}
+
+rust_aconfig_library {
+    name: "libandroid_bpfprogs_flags",
+    crate_name: "android_bpfprogs_flags",
+    aconfig_declarations: "android_bpfprogs_flags",
+}
+
+java_aconfig_library {
+    name: "android.bpfprogs.flags-aconfig-java",
+    aconfig_declarations: "android_bpfprogs_flags",
+}
+
+cc_aconfig_library {
+    name: "android.bpfprogs.flags-aconfig-cpp",
+    aconfig_declarations: "android_bpfprogs_flags",
+}
