@@ -35,6 +35,7 @@ libbpf_prog {
         "libcutils_headers",
         "android_bpf_defs",
     ],
+    relative_install_path: "cputimeinstate",
 }
 
 libbpf_prog {
