@@ -71,3 +71,22 @@ cc_aconfig_library {
     name: "android.bpfprogs.flags-aconfig-cpp",
     aconfig_declarations: "android_bpfprogs_flags",
 }
+
+libbpf_prog {
+    name: "dmabufIter.bpf",
+    srcs: ["dmabufIter.c"],
+    header_libs: [
+        "android_bpf_defs",
+        "vmlinux_h_5_10",
+    ],
+    cflags: [
+        "-DUSE_VMLINUX",
+    ],
+    relative_install_path: "dmabuf",
+    arch: {
+        // RISC-V is not a supported architecture, so we don't have a vmlinux.
+        riscv64: {
+            enabled: false,
+        },
+    },
+}
