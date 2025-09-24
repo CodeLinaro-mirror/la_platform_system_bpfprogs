@@ -71,16 +71,3 @@ cc_aconfig_library {
     name: "android.bpfprogs.flags-aconfig-cpp",
     aconfig_declarations: "android_bpfprogs_flags",
 }
-
-libbpf_prog {
-    name: "dmabufIter.bpf",
-    srcs: ["dmabufIter.c"],
-    header_libs: [
-        "android_bpf_defs",
-        "vmlinux_h_6_1",
-    ],
-    cflags: [
-        "-DUSE_VMLINUX",
-    ],
-    relative_install_path: "dmabuf",
-}

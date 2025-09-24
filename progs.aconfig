@@ -7,10 +7,3 @@ flag {
     description: "Enable Kernel Wakelock duration metric"
     bug: "373519546"
 }
-
-flag {
-    name: "load_dmabuf_iterator"
-    namespace: "system"
-    description: "Load dmabuf iterator program during boot"
-    bug: "442596542"
-}
