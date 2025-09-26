@@ -10,7 +10,7 @@ flag {
 
 flag {
     name: "load_dmabuf_iterator"
-    namespace: "system"
+    namespace: "android_kernel"
     description: "Load dmabuf iterator program during boot"
     bug: "442596542"
 }
