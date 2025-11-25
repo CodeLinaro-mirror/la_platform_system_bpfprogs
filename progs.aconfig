@@ -14,3 +14,10 @@ flag {
     description: "Load dmabuf iterator program during boot"
     bug: "442596542"
 }
+
+flag {
+    name: "load_bpf_lock_contention"
+    namespace: "kernel_memory_management"
+    description: "Load lock contention BPF programs during boot"
+    bug: "442017923"
+}
