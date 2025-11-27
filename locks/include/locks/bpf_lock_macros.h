@@ -14,8 +14,6 @@
 #ifndef _BPF_LOCK_MACROS_H
 #define _BPF_LOCK_MACROS_H
 
-#include "bpf_lock_list.h"
-
 // This header is self-contained and generates code in multiple passes.
 
 // --- Pass 1: Generate ENUMs for both Global and Dynamic locks ---
